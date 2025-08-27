@@ -4,7 +4,7 @@ export default function Footer() {
       <div className="container mx-auto px-4">
         <div className="flex flex-col items-center space-y-2">
           <p className="text-center text-sm text-muted-foreground">
-            {new Date().getFullYear()} Search Gourmet
+            {new Date().getFullYear()} GourCommu
           </p>
 
           <a
