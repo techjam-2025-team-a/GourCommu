@@ -15,8 +15,8 @@ export default function Event0Page() {
   }, []);
 
   return (
-    <div className="flex flex-col justify-center items-center h-full pt-20">
-                <h2 className="text-xl font-bold tracking-tight select-none">
+    <div className="flex flex-col justify-center items-center h-screen pt-20 font-sans bg-orange-50">
+                <h2 className="text-xl font-bold tracking-tight select-none text-gray-900">
             予定日を選んでください
           </h2>
           <p className="text-sm text-muted-foreground select-none">
@@ -27,11 +27,11 @@ export default function Event0Page() {
               mode="multiple"
               selected={selectedDates}
               onSelect={setSelectedDates}
-              initialFocus
+              
             />
           ) : null}
       <div className="flex mt-4 space-x-2">
-        <Button variant="outline" onClick={() => setSelectedDates([])} className="select-none">
+        <Button variant="outline" onClick={() => setSelectedDates([])} className="select-none text-gray-900 bg-[var(--color-calendar-background)] hover:text-[var(--color-calendar-text)]">
           リセット
         </Button>
         <Button onClick={() => router.push("/event/0/done")} disabled={selectedDates.length < 2} className="select-none">
