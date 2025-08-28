@@ -27,7 +27,7 @@ import { Shop } from "@/types"; // 正しいShop型をインポート
 
 // --- コンポーネント内で使用するデータの型定義 ---
 type Store = {
-  id: string; // IDをstring型に変更
+  id: string;
   name: string;
   location: string;
   tags: string[];
@@ -40,30 +40,6 @@ type Store = {
   likedCount: number;
   savedCount: number;
 };
-
-// --- APIから店舗情報を取得する関数 ---
-async function fetchShops(keyword?: string): Promise<Shop[]> {
-  const query = new URLSearchParams();
-  // 現在地に近い西原町や那覇市などをキーワードに設定
-  query.set("keyword", keyword || "沖縄 西原 那覇");
-
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_HOST}/api/shops?${query.toString()}`,
-    );
-    if (!res.ok) {
-      console.error(`Failed to fetch shops: ${res.status} ${res.statusText}`);
-      return [];
-    }
-    const data = await res.json();
-    return data.results?.shop ?? [];
-  } catch (error: unknown) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.error("Fetch error:", errorMessage);
-    return [];
-  }
-}
 
 // --- APIデータ(Shop)をコンポーネント用のデータ(Store)に変換する関数 ---
 const mapShopToStore = (shop: Shop): Store => {
