@@ -22,14 +22,14 @@ export default function Event0Page() {
           <p className="text-sm text-muted-foreground select-none">
             2つ以上選んで投票を作成する
           </p>
-          {isClient && (
+          {isClient ? (
             <Calendar
               mode="multiple"
               selected={selectedDates}
               onSelect={setSelectedDates}
               initialFocus
             />
-          )}
+          ) : null}
       <div className="flex mt-4 space-x-2">
         <Button variant="outline" onClick={() => setSelectedDates([])} className="select-none">
           リセット
