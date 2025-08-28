@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -15,6 +16,7 @@ const initialCandidateDates = [
 ];
 
 export default function Event1Page() {
+  const router = useRouter();
   const [displayCandidateDates, setDisplayCandidateDates] = useState(initialCandidateDates);
   const [username, setUsername] = useState("");
   const [votes, setVotes] = useState<{ [key: string]: "〇" | "✕" }>({});
@@ -60,7 +62,7 @@ export default function Event1Page() {
     console.log("Username:", username);
     console.log("Votes:", votes);
     // Here you would typically send this data to your backend
-    alert("投票を送信しました！\nユーザー名: " + username + "\n投票内容: " + JSON.stringify(votes));
+    router.push("/event/1/done");
   };
 
   return (
