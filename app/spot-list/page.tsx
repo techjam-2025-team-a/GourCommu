@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Carousel,
   CarouselContent,
@@ -116,6 +117,7 @@ const filterOptions = [
 const SpotCard = ({
   store,
   onCountUp,
+  onSelectStore,
 }: {
   store: Store;
   onCountUp: (id: number, type: "like" | "save") => void;
@@ -187,10 +189,10 @@ const SpotCard = ({
             <Button
               size="sm"
               className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold"
+              onClick={() => onSelectStore(store.id)}
             >
               このお店にする
             </Button>
-
             <div className="flex flex-wrap gap-2">
               <StyledActionButton onClick={() => onCountUp(store.id, "like")}>
                 <Star className="h-4 w-4 mr-1" /> {store.likedCount}
@@ -285,8 +287,13 @@ const FilterButton = ({
 
 // --- ページ全体 ---
 const SpotListPage = () => {
+  const router = useRouter();
   const [stores, setStores] = useState<Store[]>(initialStoresData);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
+
+  const handleSelectStore = (storeId: number) => {
+    router.push(`/event/0?storeId=${storeId}`);
+  };
 
   const handleFilterToggle = (filterId: string) => {
     setActiveFilters((prev) =>
@@ -347,6 +354,7 @@ const SpotListPage = () => {
                   key={store.id}
                   store={store}
                   onCountUp={handleCountUp}
+                  onSelectStore={handleSelectStore}
                 />
               ))
             ) : (
