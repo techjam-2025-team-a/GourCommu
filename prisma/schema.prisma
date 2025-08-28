@@ -1,0 +1,38 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Spot {
+  spotId        Int      @id @default(autoincrement())
+  name      String
+  address   String
+  genre     String
+  imageUrl  String  @map("image_url")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // このお店で開催される食事会（リレーション）
+  events    Event[]
+}
+
+// 食事会のモデル（テーブル）
+model Event {
+  eventId              Int       @id @default(autoincrement())
+  spotId       Int
+  eventDate       DateTime  @map("event_date")
+  user      String
+  vote       Boolean
+
+  spot      Spot     @relation(fields: [spotId], references: [spotId])
+}
