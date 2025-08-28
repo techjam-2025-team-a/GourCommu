@@ -5,7 +5,7 @@ import * as React from "react";
 import { Share2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { toast } from "sonner"; // Using sonner for toasts
+import { toast } from "@/components/ui/sonner"; // Using shadcn/ui sonner for toasts
 
 interface ShareButtonProps {
   url: string;
