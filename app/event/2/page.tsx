@@ -13,6 +13,8 @@ import {
   Heart
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+import ShareButton from "@/components/share-button";
 
 // `spot-list/page.tsx` から型定義を拝借
 type Store = {
@@ -110,6 +112,7 @@ const VoteResultDisplay = ({ results }: { results: { date: string, votes: number
 
 export default function Event2Page() {
   const decidedDate = "2025年9月1日 (月)";
+  const router = useRouter();
 
   return (
     <div className="min-h-screen font-sans bg-orange-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -125,10 +128,15 @@ export default function Event2Page() {
 
         <VoteResultDisplay results={voteResults} />
 
-        <div className="text-center mt-10">
-            <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white">
+        <div className="flex justify-center gap-4 mt-10">
+            <Button
+                size="lg"
+                className="bg-orange-500 hover:bg-orange-600 text-white"
+                onClick={() => router.push('/spot-list')}
+            >
                 イベントページに戻る
             </Button>
+            <ShareButton shareUrl={typeof window !== 'undefined' ? window.location.href : ''} />
         </div>
       </div>
     </div>
