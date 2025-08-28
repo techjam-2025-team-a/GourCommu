@@ -27,7 +27,7 @@ export default function Event0Page() {
               mode="multiple"
               selected={selectedDates}
               onSelect={setSelectedDates}
-              initialFocus
+              
             />
           ) : null}
       <div className="flex mt-4 space-x-2">
