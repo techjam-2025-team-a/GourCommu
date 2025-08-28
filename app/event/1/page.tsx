@@ -1,26 +1,25 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { useState } from 'react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
+import * as React from "react";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 
 // Mock data for candidate dates (replace with DB fetch later)
 const initialCandidateDates = [
-  { id: 'date1', date: '2025年9月1日 (月)', votesYes: 10, votesNo: 2 },
-  { id: 'date2', date: '2025年9月2日 (火)', votesYes: 5, votesNo: 7 },
-  { id: 'date3', date: '2025年9月3日 (水)', votesYes: 15, votesNo: 1 },
-  { id: 'date4', date: '2025年9月4日 (木)', votesYes: 8, votesNo: 4 },
+  { id: "date1", date: "2025年9月1日 (月)", votesYes: 10, votesNo: 2 },
+  { id: "date2", date: "2025年9月2日 (火)", votesYes: 5, votesNo: 7 },
+  { id: "date3", date: "2025年9月3日 (水)", votesYes: 15, votesNo: 1 },
+  { id: "date4", date: "2025年9月4日 (木)", votesYes: 8, votesNo: 4 },
 ];
 
 export default function Event1Page() {
   const [displayCandidateDates, setDisplayCandidateDates] = useState(initialCandidateDates);
-  const [username, setUsername] = useState('');
-  const [votes, setVotes] = useState<{ [key: string]: '〇' | '✕' }>({});
+  const [username, setUsername] = useState("");
+  const [votes, setVotes] = useState<{ [key: string]: "〇" | "✕" }>({});
 
-  const handleVoteChange = (dateId: string, value: '〇' | '✕') => {
+  const handleVoteChange = (dateId: string, value: "〇" | "✕") => {
     const previousVote = votes[dateId];
     const newVoteValue = previousVote === value ? undefined : value;
 
@@ -37,16 +36,16 @@ export default function Event1Page() {
           const newDate = { ...date };
 
           // Decrement previous vote
-          if (previousVote === '〇') {
+          if (previousVote === "〇") {
             newDate.votesYes--;
-          } else if (previousVote === '✕') {
+          } else if (previousVote === "✕") {
             newDate.votesNo--;
           }
 
           // Increment new vote
-          if (newVoteValue === '〇') {
+          if (newVoteValue === "〇") {
             newDate.votesYes++;
-          } else if (newVoteValue === '✕') {
+          } else if (newVoteValue === "✕") {
             newDate.votesNo++;
           }
           return newDate;
@@ -58,10 +57,10 @@ export default function Event1Page() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Username:', username);
-    console.log('Votes:', votes);
+    console.log("Username:", username);
+    console.log("Votes:", votes);
     // Here you would typically send this data to your backend
-    alert('投票を送信しました！\nユーザー名: ' + username + '\n投票内容: ' + JSON.stringify(votes));
+    alert("投票を送信しました！\nユーザー名: " + username + "\n投票内容: " + JSON.stringify(votes));
   };
 
   return (
@@ -102,11 +101,11 @@ export default function Event1Page() {
                 <div className="flex space-x-2">
                   <Button
                     type="button"
-                    variant={votes[date.id] === '〇' ? 'default' : 'outline'}
-                    onClick={() => handleVoteChange(date.id, '〇')}
-                    className={`flex items-center space-x-1 px-3 py-1 rounded-md ${votes[date.id] === '〇'
-                      ? 'bg-orange-500 text-white'
-                      : 'bg-white text-gray-800 border border-gray-300'
+                    variant={votes[date.id] === "〇" ? "default" : "outline"}
+                    onClick={() => handleVoteChange(date.id, "〇")}
+                    className={`flex items-center space-x-1 px-3 py-1 rounded-md ${votes[date.id] === "〇"
+                      ? "bg-orange-500 text-white"
+                      : "bg-white text-gray-800 border border-gray-300"
                     }`}
                   >
                     <span>〇</span>
@@ -114,11 +113,11 @@ export default function Event1Page() {
                   </Button>
                   <Button
                     type="button"
-                    variant={votes[date.id] === '✕' ? 'default' : 'outline'}
-                    onClick={() => handleVoteChange(date.id, '✕')}
-                    className={`flex items-center space-x-1 px-3 py-1 rounded-md ${votes[date.id] === '✕'
-                      ? 'bg-orange-500 text-white'
-                      : 'bg-white text-gray-800 border border-gray-300'
+                    variant={votes[date.id] === "✕" ? "default" : "outline"}
+                    onClick={() => handleVoteChange(date.id, "✕")}
+                    className={`flex items-center space-x-1 px-3 py-1 rounded-md ${votes[date.id] === "✕"
+                      ? "bg-orange-500 text-white"
+                      : "bg-white text-gray-800 border border-gray-300"
                     }`}
                   >
                     <span>✕</span>
