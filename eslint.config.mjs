@@ -18,6 +18,9 @@ const eslintConfig = [
       quotes: ["error", "double"],
     },
   },
+  {
+    ignores: ["lib/generated/**/*"],
+  },
 ];
  
 export default eslintConfig;
