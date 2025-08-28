@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Carousel,
@@ -22,68 +22,88 @@ import {
   Heart,
   CameraOff,
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Shop } from "@/types"; // 正しいShop型をインポート
 
-// --- 型定義とモックデータ ---
+// --- コンポーネント内で使用するデータの型定義 ---
 type Store = {
-  id: number;
+  id: string; // IDをstring型に変更
   name: string;
   location: string;
   tags: string[];
   images: string[];
   isCardOk: boolean;
-  category: "和食" | "洋食" | "中華";
+  category: "和食" | "洋食" | "中華" | "その他";
   maxPeople: number;
   isHighlyRated: boolean;
   isInterested: boolean;
-  likedCount: number; // 「良かった」のカウント
-  savedCount: number; // 「気になる」のカウント
+  likedCount: number;
+  savedCount: number;
 };
 
-// 初期データ
-const initialStoresData: Store[] = [
-  {
-    id: 1,
-    name: "琉球ダイニング ちゅらさん亭",
-    location: "沖縄県西原町",
-    tags: ["沖縄料理", "居酒屋"],
-    images: ["/placeholder1.jpg"],
-    isCardOk: true,
-    category: "和食",
-    maxPeople: 4,
-    isHighlyRated: true,
-    isInterested: true,
-    likedCount: 28,
-    savedCount: 15,
-  },
-  {
-    id: 2,
-    name: "ビストロ・デ・マール",
-    location: "沖縄県那覇市",
-    tags: ["フレンチ", "ワイン"],
-    images: ["/placeholder2.jpg"],
-    isCardOk: true,
-    category: "洋食",
-    maxPeople: 2,
-    isHighlyRated: false,
-    isInterested: true,
-    likedCount: 12,
-    savedCount: 23,
-  },
-  {
-    id: 3,
-    name: "中華飯店 龍の髭",
-    location: "沖縄県浦添市",
-    tags: ["中華", "餃子"],
-    images: ["/placeholder3.jpg"],
-    isCardOk: false,
-    category: "中華",
-    maxPeople: 6,
-    isHighlyRated: true,
-    isInterested: true,
-    likedCount: 45,
-    savedCount: 8,
-  },
-];
+// --- APIから店舗情報を取得する関数 ---
+async function fetchShops(keyword?: string): Promise<Shop[]> {
+  const query = new URLSearchParams();
+  // 現在地に近い西原町や那覇市などをキーワードに設定
+  query.set("keyword", keyword || "沖縄 西原 那覇");
+
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_HOST}/api/shops?${query.toString()}`,
+    );
+    if (!res.ok) {
+      console.error(`Failed to fetch shops: ${res.status} ${res.statusText}`);
+      return [];
+    }
+    const data = await res.json();
+    return data.results?.shop ?? [];
+  } catch (error: unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Fetch error:", errorMessage);
+    return [];
+  }
+}
+
+// --- APIデータ(Shop)をコンポーネント用のデータ(Store)に変換する関数 ---
+const mapShopToStore = (shop: Shop): Store => {
+  const tags = [shop.genre.name, shop.catch].filter(Boolean);
+
+  let category: Store["category"] = "その他";
+  if (
+    tags.some(
+      (t) => t.includes("和食") || t.includes("居酒屋") || t.includes("寿司"),
+    )
+  ) {
+    category = "和食";
+  } else if (
+    tags.some(
+      (t) =>
+        t.includes("洋食") ||
+        t.includes("イタリアン") ||
+        t.includes("フレンチ"),
+    )
+  ) {
+    category = "洋食";
+  } else if (tags.some((t) => t.includes("中華"))) {
+    category = "中華";
+  }
+
+  return {
+    id: shop.id,
+    name: shop.name,
+    location: shop.address,
+    tags: tags.slice(0, 3),
+    images: [shop.photo.pc.l, shop.photo.pc.m, shop.photo.pc.s].filter(Boolean),
+    isCardOk: shop.card === "利用可",
+    category: category,
+    maxPeople: shop.party_capacity || Math.floor(Math.random() * 6) + 2,
+    isHighlyRated: Math.random() > 0.5,
+    isInterested: Math.random() > 0.3,
+    likedCount: Math.floor(Math.random() * 50),
+    savedCount: Math.floor(Math.random() * 30),
+  };
+};
 
 const filterOptions = [
   {
@@ -120,22 +140,25 @@ const SpotCard = ({
   onSelectStore,
 }: {
   store: Store;
-  onCountUp: (id: number, type: "like" | "save") => void;
+  onCountUp: (id: string, type: "like" | "save") => void;
+  onSelectStore: (id: string) => void;
 }) => (
-  <Card className="border-2 border-gray-300 bg-white shadow-lg rounded-xl overflow-hidden mb-3">
+  <Card className="border-2 border-orange-200 bg-white shadow-lg rounded-xl overflow-hidden mb-3">
     <CardContent className="p-3">
       <div className="flex flex-row space-x-4">
         {/* 画像コンテナ */}
         <div className="w-1/3 flex-shrink-0">
           {store.images && store.images.length > 0 ? (
-            <Carousel>
+            <Carousel className="w-full">
               <CarouselContent>
-                {store.images.map((_, index) => (
+                {store.images.map((imgSrc, index) => (
                   <CarouselItem key={index}>
-                    <div className="aspect-square bg-gray-200 flex items-center justify-center rounded-lg text-gray-500">
-                      <span className="text-xs text-gray-400">
-                        （お店の画像 {index + 1}）
-                      </span>
+                    <div className="aspect-square rounded-lg overflow-hidden">
+                      <img
+                        src={imgSrc}
+                        alt={`${store.name}の画像 ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                   </CarouselItem>
                 ))}
@@ -164,26 +187,22 @@ const SpotCard = ({
               <MapPin className="h-4 w-4 mr-1.5 text-orange-500" />
               <span>{store.location}</span>
             </div>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap items-center gap-1.5">
               <Tag className="h-5 w-5 mr-1 text-orange-500" />
               {store.tags.map((tag) => (
-                <Badge
-                  key={tag}
-                  variant="secondary"
-                  className="text-xs bg-[var(--color-calendar-background)] text-[var(--color-calendar-text)]"
-                >
+                <Badge key={tag} variant="secondary" className="text-xs">
                   {tag}
                 </Badge>
               ))}
             </div>
           </div>
 
-          <div className="mt-2 flex-grow flex flex-col justify-end space-y-2">
+          <div className="mt-auto flex flex-col justify-end space-y-2 pt-2">
             <Button
               size="sm"
               variant="link"
-              asChild // このプロパティを追加
-              className="p-0 justify-start h-auto" // レイアウト用のクラスのみ残す
+              asChild
+              className="p-0 justify-start h-auto"
             >
               <a className="text-orange-500 hover:text-orange-600 hover:underline underline-offset-4">
                 この店の詳細をみる
@@ -257,7 +276,6 @@ const FilterButton = ({
   isSelected: boolean;
   onClick: () => void;
 }) => {
-  // フックをコンポーネントのトップレベルで呼び出す
   const [isHovered, setIsHovered] = useState(false);
 
   const defaultStyle = {
@@ -289,13 +307,64 @@ const FilterButton = ({
   );
 };
 
+// --- ローディング中のスケルトンコンポーネント ---
+const SpotCardSkeleton = () => (
+  <div className="flex space-x-4 p-3 border-2 border-gray-200 bg-white shadow-lg rounded-xl mb-3">
+    <Skeleton className="h-32 w-1/3 rounded-lg" />
+    <div className="w-2/3 space-y-3">
+      <Skeleton className="h-6 w-3/4" />
+      <Skeleton className="h-4 w-1/2" />
+      <div className="flex space-x-2">
+        <Skeleton className="h-5 w-12" />
+        <Skeleton className="h-5 w-16" />
+      </div>
+      <div className="flex-grow" />
+      <div className="flex justify-between items-center pt-4">
+        <Skeleton className="h-8 w-full" />
+      </div>
+    </div>
+  </div>
+);
+
 // --- ページ全体 ---
 const SpotListPage = () => {
   const router = useRouter();
-  const [stores, setStores] = useState<Store[]>(initialStoresData);
+  const [stores, setStores] = useState<Store[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
 
-  const handleSelectStore = (storeId: number) => {
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_HOST}/api/shops`,
+        );
+        if (!response.ok) {
+          throw new Error(`API responded with status ${response.status}`);
+        }
+
+        // APIから受け取ったデータ（お店の配列）をそのまま使う
+        const fetchedShops: Shop[] = await response.json();
+
+        // 画面表示用にデータを変換
+        const mappedStores = fetchedShops.map(mapShopToStore);
+
+        // Stateを更新して画面に反映
+        setStores(mappedStores);
+      } catch (error) {
+        console.error("データ処理中にエラーが発生しました:", error);
+        setStores([]); // エラーが発生した場合は空にする
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  const handleSelectStore = (storeId: string) => {
     router.push(`/event/0?storeId=${storeId}`);
   };
 
@@ -307,7 +376,7 @@ const SpotListPage = () => {
     );
   };
 
-  const handleCountUp = (id: number, type: "like" | "save") => {
+  const handleCountUp = (id: string, type: "like" | "save") => {
     setStores((prevStores) =>
       prevStores.map((store) => {
         if (store.id === id) {
@@ -322,8 +391,12 @@ const SpotListPage = () => {
   };
 
   const filteredStores = stores.filter((store) => {
+    if (activeFilters.length === 0) {
+      return true;
+    }
     return activeFilters.every((filterId) => {
       if (filterId === "isHighlyRated") return store.isHighlyRated;
+      if (filterId === "isInterested") return store.isInterested;
       if (filterId === "isCardOk") return store.isCardOk;
       if (filterId === "isJapaneseFood") return store.category === "和食";
       if (filterId === "isForSmallGroup") return store.maxPeople <= 3;
@@ -352,7 +425,13 @@ const SpotListPage = () => {
 
         <div className="w-full max-w-4xl mx-auto px-4">
           <div className="pt-6">
-            {filteredStores.length > 0 ? (
+            {isLoading ? (
+              <div>
+                <SpotCardSkeleton />
+                <SpotCardSkeleton />
+                <SpotCardSkeleton />
+              </div>
+            ) : filteredStores.length > 0 ? (
               filteredStores.map((store) => (
                 <SpotCard
                   key={store.id}
