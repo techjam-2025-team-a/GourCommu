@@ -17,7 +17,7 @@ interface ShareButtonProps {
 
 export function ShareButton({
   url,
-  title = typeof document !== 'undefined' ? document.title : '', // デフォルトは現在のページのタイトル
+  title = typeof document !== "undefined" ? document.title : "", // デフォルトは現在のページのタイトル
   text = "", // オプションのテキスト
   tooltipTitle = "共有",
   copiedTooltipTitle = "コピーしました！",
@@ -44,7 +44,7 @@ export function ShareButton({
         });
         
       } catch (error) {
-        
+        console.error("Web Share APIでの共有に失敗しました", error);
         // Fallback to clipboard copy if Web Share API fails or is cancelled
         try {
           await navigator.clipboard.writeText(url);
@@ -54,7 +54,7 @@ export function ShareButton({
           });
           
         } catch (clipboardError) {
-          
+          console.error("クリップボードへのコピーに失敗しました:", clipboardError);
           toast("コピーに失敗しました", {
             description: "リンクをクリップボードにコピーできませんでした。",
           });
@@ -70,7 +70,7 @@ export function ShareButton({
           description: "共有可能なリンクがクリップボードにコピーされました。",
         });
       } catch (error) {
-        
+        console.error("コピーに失敗しました:", error);
         toast("コピーに失敗しました", {
           description: "リンクをクリップボードにコピーできませんでした。",
         });
