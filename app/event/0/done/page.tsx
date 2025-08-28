@@ -13,7 +13,7 @@ export default function Event0DonePage() {
   }, []);
 
   return (
-    <div className="pt-20 text-center">
+    <div className="flex flex-col justify-center items-center h-screen pt-20 font-sans bg-orange-50">
       <h1 className="text-2xl font-bold mb-4">開催日の投票を作成しました！</h1>
       <div className="flex w-full max-w-sm items-center space-x-2 mx-auto">
         <Input type="text" value={shareUrl} readOnly />

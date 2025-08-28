@@ -120,7 +120,7 @@ const SpotCard = ({
   store: Store;
   onCountUp: (id: number, type: "like" | "save") => void;
 }) => (
-  <Card className="border-2 border-orange-200 bg-white shadow-lg rounded-xl overflow-hidden mb-3">
+  <Card className="border-2 border-gray-300 bg-white shadow-lg rounded-xl overflow-hidden mb-3">
     <CardContent className="p-3">
       <div className="flex flex-row space-x-4">
         {/* 画像コンテナ */}
@@ -165,7 +165,11 @@ const SpotCard = ({
             <div className="flex flex-wrap gap-1.5">
               <Tag className="h-5 w-5 mr-1 text-orange-500" />
               {store.tags.map((tag) => (
-                <Badge key={tag} variant="secondary" className="text-xs">
+                <Badge
+                  key={tag}
+                  variant="secondary"
+                  className="text-xs bg-[var(--color-calendar-background)] text-[var(--color-calendar-text)]"
+                >
                   {tag}
                 </Badge>
               ))}
