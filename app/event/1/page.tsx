@@ -14,14 +14,20 @@ const initialCandidateDates = [
   { id: "date4", date: "2025年9月4日 (木)", votesYes: 8, votesNo: 4 },
 ];
 
+// 投票の状態を表す型
+type VoteValue = "〇" | "✕" | undefined;
+
 export default function Event1Page() {
   const [displayCandidateDates, setDisplayCandidateDates] = useState(initialCandidateDates);
   const [username, setUsername] = useState("");
-  const [votes, setVotes] = useState<{ [key: string]: "〇" | "✕" }>({});
+
+  // --- ここが修正点です ---
+  // votes stateが `undefined` な値を受け入れられるように型定義を変更しました。
+  const [votes, setVotes] = useState<{ [key: string]: VoteValue }>({});
 
   const handleVoteChange = (dateId: string, value: "〇" | "✕") => {
     const previousVote = votes[dateId];
-    const newVoteValue = previousVote === value ? undefined : value;
+    const newVoteValue: VoteValue = previousVote === value ? undefined : value;
 
     // Update votes state
     setVotes((prevVotes) => ({
@@ -104,9 +110,9 @@ export default function Event1Page() {
                     variant={votes[date.id] === "〇" ? "default" : "outline"}
                     onClick={() => handleVoteChange(date.id, "〇")}
                     className={`flex items-center space-x-1 px-3 py-1 rounded-md ${votes[date.id] === "〇"
-                      ? "bg-orange-500 text-white"
-                      : "bg-white text-gray-800 border border-gray-300"
-                    }`}
+                        ? "bg-orange-500 text-white"
+                        : "bg-white text-gray-800 border border-gray-300"
+                      }`}
                   >
                     <span>〇</span>
                     <span className="text-gray-500 text-xs">({date.votesYes})</span>
@@ -116,9 +122,9 @@ export default function Event1Page() {
                     variant={votes[date.id] === "✕" ? "default" : "outline"}
                     onClick={() => handleVoteChange(date.id, "✕")}
                     className={`flex items-center space-x-1 px-3 py-1 rounded-md ${votes[date.id] === "✕"
-                      ? "bg-orange-500 text-white"
-                      : "bg-white text-gray-800 border border-gray-300"
-                    }`}
+                        ? "bg-orange-500 text-white"
+                        : "bg-white text-gray-800 border border-gray-300"
+                      }`}
                   >
                     <span>✕</span>
                     <span className="text-gray-500 text-xs">({date.votesNo})</span>
@@ -137,3 +143,4 @@ export default function Event1Page() {
     </div>
   );
 }
+

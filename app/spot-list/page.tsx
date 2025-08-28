@@ -121,6 +121,7 @@ const SpotCard = ({
 }: {
   store: Store;
   onCountUp: (id: number, type: "like" | "save") => void;
+  onSelectStore: (id: number) => void; // --- ここが修正点です ---
 }) => (
   <Card className="border-2 border-gray-300 bg-white shadow-lg rounded-xl overflow-hidden mb-3">
     <CardContent className="p-3">
@@ -374,3 +375,4 @@ const SpotListPage = () => {
 };
 
 export default SpotListPage;
+
