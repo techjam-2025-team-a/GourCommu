@@ -341,7 +341,8 @@ const SpotListPage = () => {
   }, []);
 
   const handleSelectStore = (storeId: string) => {
-    router.push(`/event/0?storeId=${storeId}`);
+    // --- ここを修正しました ---
+    router.push(`/event/new?storeId=${storeId}`);
   };
 
   const handleFilterToggle = (filterId: string) => {
