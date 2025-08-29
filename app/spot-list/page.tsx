@@ -20,11 +20,11 @@ import {
   Star,
   Heart,
   CameraOff,
+  DoorClosed,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Shop } from "@/types"; // 正しいShop型をインポート
+import { Shop } from "@/types";
 
-// --- コンポーネント内で使用するデータの型定義 ---
 type Store = {
   id: string;
   name: string;
@@ -38,9 +38,9 @@ type Store = {
   isInterested: boolean;
   likedCount: number;
   savedCount: number;
+  hasPrivateRoom: boolean;
 };
 
-// --- APIデータ(Shop)をコンポーネント用のデータ(Store)に変換する関数 ---
 const mapShopToStore = (shop: Shop): Store => {
   const tags = [shop.genre.name, shop.catch].filter(Boolean);
 
@@ -64,6 +64,9 @@ const mapShopToStore = (shop: Shop): Store => {
     category = "中華";
   }
 
+  const likedCount = Math.floor(Math.random() * 50);
+  const savedCount = Math.floor(Math.random() * 30);
+
   return {
     id: shop.id,
     name: shop.name,
@@ -73,10 +76,11 @@ const mapShopToStore = (shop: Shop): Store => {
     isCardOk: shop.card === "利用可",
     category: category,
     maxPeople: shop.party_capacity || Math.floor(Math.random() * 6) + 2,
-    isHighlyRated: Math.random() > 0.5,
-    isInterested: Math.random() > 0.3,
-    likedCount: Math.floor(Math.random() * 50),
-    savedCount: Math.floor(Math.random() * 30),
+    isHighlyRated: likedCount > 30,
+    isInterested: savedCount > 15,
+    likedCount: likedCount,
+    savedCount: savedCount,
+    hasPrivateRoom: !!shop.private_room && shop.private_room.includes("あり"),
   };
 };
 
@@ -102,13 +106,12 @@ const filterOptions = [
     icon: <Utensils className="mr-1.5 h-4 w-4" />,
   },
   {
-    id: "isForSmallGroup",
-    label: "〜3人",
+    id: "hasPrivateRoom",
+    label: "個室あり",
     icon: <Users className="mr-1.5 h-4 w-4" />,
   },
 ];
 
-// --- お店情報のカードコンポーネント ---
 const SpotCard = ({
   store,
   onCountUp,
@@ -121,7 +124,6 @@ const SpotCard = ({
   <Card className="border-2 border-orange-200 bg-white shadow-lg rounded-xl overflow-hidden mb-3">
     <CardContent className="p-5">
       <div className="flex flex-row space-x-3">
-        {/* 画像コンテナ */}
         <div className="w-1/3 flex-shrink-0">
           {store.images && store.images.length > 0 ? (
             <Carousel className="w-full">
@@ -146,7 +148,6 @@ const SpotCard = ({
             </div>
           )}
         </div>
-        {/* 店舗情報コンテナ */}
         <div className="w-2/3 flex flex-col">
           <div>
             <h2 className="text-lg font-bold text-gray-800 mb-0.5 truncate">
@@ -276,7 +277,6 @@ const FilterButton = ({
   );
 };
 
-// --- ローディング中のスケルトンコンポーネント ---
 const SpotCardSkeleton = () => (
   <div className="flex space-x-4 p-3 border-2 border-gray-200 bg-white shadow-lg rounded-xl mb-3">
     <Skeleton className="h-32 w-1/3 rounded-lg" />
@@ -295,7 +295,6 @@ const SpotCardSkeleton = () => (
   </div>
 );
 
-// --- ページ全体 ---
 const SpotListPage = () => {
   const [stores, setStores] = React.useState<Store[]>([]);
   const [isLoading, setIsLoading] = React.useState<boolean>(true);
@@ -306,14 +305,16 @@ const SpotListPage = () => {
       setIsLoading(true);
 
       try {
-        // ★修正点: process.envを使わない相対パスに変更
         const response = await fetch("../api/shops");
         if (!response.ok) {
           throw new Error(`API responded with status ${response.status}`);
         }
 
         const fetchedShops: Shop[] = await response.json();
-        const mappedStores = fetchedShops.map(mapShopToStore);
+        const nahaShops = fetchedShops.filter((shop) =>
+          shop.address.includes("那覇"),
+        );
+        const mappedStores = nahaShops.map(mapShopToStore);
         setStores(mappedStores);
       } catch (error) {
         console.error("データ処理中にエラーが発生しました:", error);
@@ -331,11 +332,24 @@ const SpotListPage = () => {
   };
 
   const handleFilterToggle = (filterId: string) => {
-    setActiveFilters((prev) =>
-      prev.includes(filterId)
-        ? prev.filter((id) => id !== filterId)
-        : [...prev, filterId],
-    );
+    const exclusiveFilters = ["isHighlyRated", "isInterested"];
+
+    setActiveFilters((prev) => {
+      const isExclusive = exclusiveFilters.includes(filterId);
+      const isCurrentlyActive = prev.includes(filterId);
+
+      if (isExclusive) {
+        const nonExclusive = prev.filter((f) => !exclusiveFilters.includes(f));
+        if (!isCurrentlyActive) {
+          return [...nonExclusive, filterId];
+        }
+        return nonExclusive;
+      } else {
+        return isCurrentlyActive
+          ? prev.filter((id) => id !== filterId)
+          : [...prev, filterId];
+      }
+    });
   };
 
   const handleCountUp = (id: string, type: "like" | "save") => {
@@ -352,19 +366,29 @@ const SpotListPage = () => {
     );
   };
 
-  const filteredStores = stores.filter((store) => {
-    if (activeFilters.length === 0) {
-      return true;
-    }
-    return activeFilters.every((filterId) => {
-      if (filterId === "isHighlyRated") return store.isHighlyRated;
-      if (filterId === "isInterested") return store.isInterested;
-      if (filterId === "isCardOk") return store.isCardOk;
-      if (filterId === "isJapaneseFood") return store.category === "和食";
-      if (filterId === "isForSmallGroup") return store.maxPeople <= 3;
-      return true;
+  const filteredStores = stores
+    .filter((store) => {
+      if (activeFilters.length === 0) {
+        return true;
+      }
+      return activeFilters.every((filterId) => {
+        if (filterId === "isHighlyRated") return true;
+        if (filterId === "isInterested") return true;
+        if (filterId === "isCardOk") return store.isCardOk;
+        if (filterId === "isJapaneseFood") return store.category === "和食";
+        if (filterId === "hasPrivateRoom") return store.hasPrivateRoom;
+        return true;
+      });
+    })
+    .sort((a, b) => {
+      if (activeFilters.includes("isHighlyRated")) {
+        return b.likedCount - a.likedCount;
+      }
+      if (activeFilters.includes("isInterested")) {
+        return b.savedCount - a.savedCount;
+      }
+      return b.likedCount - a.likedCount;
     });
-  });
 
   return (
     <main className="font-sans bg-background">
