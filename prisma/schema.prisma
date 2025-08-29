@@ -1,12 +1,7 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client-js"
-  output   = "../lib/generated/prisma"
+  provider      = "prisma-client-js"
+  output        = "../lib/generated/prisma"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
 }
 
 datasource db {
@@ -15,24 +10,42 @@ datasource db {
 }
 
 model Spot {
-  spotId        Int      @id @default(autoincrement())
+  spotId    Int      @id @default(autoincrement())
   name      String
   address   String
   genre     String
-  imageUrl  String  @map("image_url")
+  imageUrl  String   @map("image_url")
   createdAt DateTime @default(now()) @map("created_at")
-
-  // このお店で開催される食事会（リレーション）
   events    Event[]
 }
 
-// 食事会のモデル（テーブル）
+// 投票イベント全体を管理するテーブル
 model Event {
-  eventId              Int       @id @default(autoincrement())
-  spotId       Int
-  eventDate       DateTime  @map("event_date")
-  user      String
-  vote       Boolean
-
+  eventId   Int      @id @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at")
+  spotId    Int
   spot      Spot     @relation(fields: [spotId], references: [spotId])
+  
+  // 1つのイベントは、複数の候補日を持つ
+  dates     CandidateDate[]
+}
+
+// イベントに紐づく「候補日」を管理するテーブル
+model CandidateDate {
+  dateId    Int      @id @default(autoincrement())
+  date      DateTime // 候補日の日付
+  eventId   Int
+  event     Event    @relation(fields: [eventId], references: [eventId])
+
+  // 1つの候補日は、複数の投票を持つ
+  votes     Vote[]
+}
+
+// 個々の「投票」を管理するテーブル
+model Vote {
+  voteId    Int      @id @default(autoincrement())
+  user      String   // 投票した人の名前
+  vote      Boolean  // true: 〇, false: ✕
+  dateId    Int
+  date      CandidateDate @relation(fields: [dateId], references: [dateId])
 }

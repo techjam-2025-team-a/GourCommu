@@ -1,28 +1,58 @@
 "use client";
 
 import * as React from "react";
+import { Suspense } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
+import { createEvent } from "./actions"; // 作成したサーバーアクションをインポート
 
-export default function EventNewPage() {
+// useSearchParams を使うコンポーネントを分離
+function EventNewPageComponent() {
   const [selectedDates, setSelectedDates] = React.useState<Date[] | undefined>([]);
   const [isClient, setIsClient] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false); // 送信中フラグ
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   React.useEffect(() => {
     setIsClient(true);
   }, []);
 
   // 「決定！」ボタンが押されたときの処理
-  const handleConfirm = () => {
-    if (selectedDates && selectedDates.length > 0) {
-      // 日付の配列をJSON文字列に変換
-      const datesString = JSON.stringify(selectedDates);
+  const handleConfirm = async () => {
+    if (!selectedDates || selectedDates.length < 2) return;
+
+    const storeId = searchParams.get("storeId");
+    if (!storeId) {
+      toast.error("お店の情報が見つかりません。");
+      return;
+    }
+
+    setIsSubmitting(true); // 送信中にする
+
+    try {
+      // サーバーアクションを呼び出してDBにイベントを保存
+      const newEvent = await createEvent({
+        storeId: storeId,
+        dates: selectedDates,
+      });
+
+      // 成功したら、DBから返されたイベントIDを使って次のページへ
+      const query = new URLSearchParams({
+        dates: JSON.stringify(selectedDates),
+        eventId: newEvent.eventId.toString(), // DBのIDを使用
+        storeId: storeId,
+      });
       
-      // --- ここが修正点です ---
-      // 遷移先のURLを /event/new/done に変更
-      router.push(`/event/new/done?dates=${encodeURIComponent(datesString)}`);
+      router.push(`/event/new/done?${query.toString()}`);
+
+    } catch (error) {
+      console.error("イベントの作成に失敗しました:", error);
+      toast.error("イベントの作成に失敗しました。もう一度お試しください。");
+    } finally {
+      setIsSubmitting(false); // 送信完了
     }
   };
 
@@ -53,12 +83,21 @@ export default function EventNewPage() {
         </Button>
         <Button 
           onClick={handleConfirm} 
-          disabled={!selectedDates || selectedDates.length < 2} 
+          disabled={!selectedDates || selectedDates.length < 2 || isSubmitting} 
           className="select-none"
         >
-          決定！
+          {isSubmitting ? "作成中..." : "決定！"}
         </Button>
       </div>
     </div>
+  );
+}
+
+// Suspenseでラップして、useSearchParamsの読み込みを待つ
+export default function EventNewPage() {
+  return (
+    <Suspense>
+      <EventNewPageComponent />
+    </Suspense>
   );
 }
