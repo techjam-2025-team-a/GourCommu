@@ -328,7 +328,7 @@ const SpotListPage = () => {
   }, []);
 
   const handleSelectStore = (storeId: string) => {
-    window.location.href = `/event/0?storeId=${storeId}`;
+    window.location.href = `/event/new?storeId=${storeId}`;
   };
 
   const handleFilterToggle = (filterId: string) => {
