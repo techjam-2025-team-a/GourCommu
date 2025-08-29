@@ -34,46 +34,36 @@ export function ShareButton({
   }, [hasCopied]);
 
   const handleShare = async () => {
+    // --- ここからが修正点です ---
+
+    // 1. まずクリップボードにコピーして、sonnerで通知を出す
+    try {
+      await navigator.clipboard.writeText(url);
+      setHasCopied(true);
+      toast("リンクをコピーしました！", {
+        description: "共有可能なリンクがクリップボードにコピーされました。",
+      });
+    } catch (error) {
+      console.error("コピーに失敗しました:", error);
+      toast("コピーに失敗しました", {
+        description: "リンクをクリップボードにコピーできませんでした。",
+      });
+      // コピーに失敗した場合は、ここで処理を中断
+      return;
+    }
+
+    // 2. 次に、Web Share APIが利用可能であれば呼び出す
     if (navigator.share) {
-      // Web Share API がサポートされている場合
       try {
         await navigator.share({
           title: title,
           text: text,
           url: url,
         });
-        
       } catch (error) {
-        console.error("Web Share APIでの共有に失敗しました", error);
-        // Fallback to clipboard copy if Web Share API fails or is cancelled
-        try {
-          await navigator.clipboard.writeText(url);
-          setHasCopied(true);
-          toast("リンクをコピーしました！", {
-            description: "共有可能なリンクがクリップボードにコピーされました。",
-          });
-          
-        } catch (clipboardError) {
-          console.error("クリップボードへのコピーに失敗しました:", clipboardError);
-          toast("コピーに失敗しました", {
-            description: "リンクをクリップボードにコピーできませんでした。",
-          });
-          
-        }
-      }
-    } else {
-      // Web Share API がサポートされていない場合、クリップボードにコピー
-      try {
-        await navigator.clipboard.writeText(url);
-        setHasCopied(true);
-        toast("リンクをコピーしました！", {
-          description: "共有可能なリンクがクリップボードにコピーされました。",
-        });
-      } catch (error) {
-        console.error("コピーに失敗しました:", error);
-        toast("コピーに失敗しました", {
-          description: "リンクをクリップボードにコピーできませんでした。",
-        });
+        // ユーザーが共有をキャンセルした場合などは、エラーを無視します
+        // (すでにクリップボードへのコピーは成功しているため)
+        console.log("Web Share APIはキャンセルされたか、利用できませんでした。", error);
       }
     }
   };
