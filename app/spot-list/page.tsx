@@ -391,7 +391,7 @@ const SpotListPage = () => {
     });
 
   return (
-    <main className="font-sans bg-background">
+    <main className="font-sans bg-orange-50 min-h-screen">
       <div className="w-full max-w-2xl mx-auto px-4 pt-6 pb-4">
         <div className="sticky top-11 z-3 bg-background/80 pt-6 pb-4 backdrop-blur-sm border-b border-orange-100">
           <h1 className="text-2xl font-bold mb-4 text-gray-800">お店を探す</h1>
