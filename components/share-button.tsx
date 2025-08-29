@@ -34,8 +34,6 @@ export function ShareButton({
   }, [hasCopied]);
 
   const handleShare = async () => {
-    // --- ここからが修正点です ---
-
     // 1. まずクリップボードにコピーして、sonnerで通知を出す
     try {
       await navigator.clipboard.writeText(url);
@@ -72,11 +70,13 @@ export function ShareButton({
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
+          {/* --- ここからが修正点です --- */}
           <Button
-            variant="ghost"
+            variant="outline"
             size="icon"
             onClick={handleShare}
             aria-label={hasCopied ? copiedTooltipTitle : tooltipTitle}
+            className="rounded-full bg-white border-gray-300 hover:bg-gray-100 text-gray-600"
           >
             {hasCopied ? (
               <Check className="h-4 w-4 text-green-500" />

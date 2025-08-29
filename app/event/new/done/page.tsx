@@ -1,12 +1,15 @@
 "use client";
 import { Input } from "@/components/ui/input";
 import { ShareButton } from "@/components/share-button";
+import { Button } from "@/components/ui/button"; // Buttonをインポート
+import { useRouter } from "next/navigation"; // useRouterをインポート
 // useRefをreactからインポートします
 import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 
-export default function Event0DonePage() {
+export default function EventDonePage() {
   const [shareUrl, setShareUrl] = useState("");
+  const router = useRouter(); // useRouterフックを初期化
   // 処理が実行済みかを管理するためのrefを作成します
   const effectRan = useRef(false);
 
@@ -45,6 +48,12 @@ export default function Event0DonePage() {
     }
   }, []); // このuseEffectは初回レンダリング時に一度だけ実行されます
 
+  const handleNavigate = () => {
+    if (shareUrl) {
+      router.push(shareUrl);
+    }
+  };
+
   return (
     <div className="flex flex-col justify-center items-center h-screen pt-20 font-sans bg-orange-50">
       <h1 className="text-2xl font-bold mb-4">開催日の投票を作成しました！</h1>
@@ -55,6 +64,15 @@ export default function Event0DonePage() {
         <Input type="text" value={shareUrl} readOnly className="bg-white" />
         <ShareButton url={shareUrl} />
       </div>
+      
+      {/* --- ここからが修正点です --- */}
+      <Button
+        onClick={handleNavigate}
+        disabled={!shareUrl}
+        className="mt-4 w-full max-w-sm bg-orange-500 hover:bg-orange-600 text-white cursor-pointer"
+      >
+        投票ページへ移動する
+      </Button>
     </div>
   );
 }
