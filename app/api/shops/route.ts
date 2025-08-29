@@ -52,6 +52,7 @@ export async function GET(request: Request) {
       key,
       format: "json",
       large_area: searchParams.get("large_area") || "Z098",
+      count: "100",
     });
 
     const keyword = searchParams.get("keyword");

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import * as React from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Carousel,
   CarouselContent,
@@ -9,9 +10,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   MapPin,
   Tag,
@@ -21,11 +20,11 @@ import {
   Star,
   Heart,
   CameraOff,
+  DoorClosed,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Shop } from "@/types"; // 正しいShop型をインポート
+import { Shop } from "@/types";
 
-// --- コンポーネント内で使用するデータの型定義 ---
 type Store = {
   id: string;
   name: string;
@@ -39,9 +38,9 @@ type Store = {
   isInterested: boolean;
   likedCount: number;
   savedCount: number;
+  hasPrivateRoom: boolean;
 };
 
-// --- APIデータ(Shop)をコンポーネント用のデータ(Store)に変換する関数 ---
 const mapShopToStore = (shop: Shop): Store => {
   const tags = [shop.genre.name, shop.catch].filter(Boolean);
 
@@ -65,6 +64,9 @@ const mapShopToStore = (shop: Shop): Store => {
     category = "中華";
   }
 
+  const likedCount = Math.floor(Math.random() * 50);
+  const savedCount = Math.floor(Math.random() * 30);
+
   return {
     id: shop.id,
     name: shop.name,
@@ -74,10 +76,11 @@ const mapShopToStore = (shop: Shop): Store => {
     isCardOk: shop.card === "利用可",
     category: category,
     maxPeople: shop.party_capacity || Math.floor(Math.random() * 6) + 2,
-    isHighlyRated: Math.random() > 0.5,
-    isInterested: Math.random() > 0.3,
-    likedCount: Math.floor(Math.random() * 50),
-    savedCount: Math.floor(Math.random() * 30),
+    isHighlyRated: likedCount > 30,
+    isInterested: savedCount > 15,
+    likedCount: likedCount,
+    savedCount: savedCount,
+    hasPrivateRoom: !!shop.private_room && shop.private_room.includes("あり"),
   };
 };
 
@@ -103,13 +106,12 @@ const filterOptions = [
     icon: <Utensils className="mr-1.5 h-4 w-4" />,
   },
   {
-    id: "isForSmallGroup",
-    label: "〜3人",
+    id: "hasPrivateRoom",
+    label: "個室あり",
     icon: <Users className="mr-1.5 h-4 w-4" />,
   },
 ];
 
-// --- お店情報のカードコンポーネント ---
 const SpotCard = ({
   store,
   onCountUp,
@@ -120,9 +122,8 @@ const SpotCard = ({
   onSelectStore: (id: string) => void;
 }) => (
   <Card className="border-2 border-orange-200 bg-white shadow-lg rounded-xl overflow-hidden mb-3">
-    <CardContent className="p-3">
-      <div className="flex flex-row space-x-4">
-        {/* 画像コンテナ */}
+    <CardContent className="p-5">
+      <div className="flex flex-row space-x-3">
         <div className="w-1/3 flex-shrink-0">
           {store.images && store.images.length > 0 ? (
             <Carousel className="w-full">
@@ -139,12 +140,6 @@ const SpotCard = ({
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              {store.images.length > 1 && (
-                <>
-                  <CarouselPrevious className="left-2 hidden sm:flex" />
-                  <CarouselNext className="right-2 hidden sm:flex" />
-                </>
-              )}
             </Carousel>
           ) : (
             <div className="aspect-square bg-gray-200 flex flex-col items-center justify-center rounded-lg text-gray-400">
@@ -153,15 +148,14 @@ const SpotCard = ({
             </div>
           )}
         </div>
-        {/* 店舗情報コンテナ */}
         <div className="w-2/3 flex flex-col">
           <div>
-            <h2 className="text-lg font-bold text-gray-800 mb-0.5">
+            <h2 className="text-lg font-bold text-gray-800 mb-0.5 truncate">
               {store.name}
             </h2>
             <div className="flex items-center text-xs text-gray-600 mb-2">
               <MapPin className="h-4 w-4 mr-1.5 text-orange-500" />
-              <span>{store.location}</span>
+              <span className="truncate">{store.location}</span>
             </div>
             <div className="flex flex-wrap items-center gap-1.5">
               <Tag className="h-5 w-5 mr-1 text-orange-500" />
@@ -187,7 +181,7 @@ const SpotCard = ({
 
             <Button
               size="sm"
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold"
+              className="w-full max-w-full bg-orange-500 hover:bg-orange-600 text-white font-bold"
               onClick={() => onSelectStore(store.id)}
             >
               このお店にする
@@ -214,7 +208,7 @@ const StyledActionButton = ({
   children: React.ReactNode;
   onClick: () => void;
 }) => {
-  const [isHovered, setIsHovered] = useState(false);
+  const [isHovered, setIsHovered] = React.useState(false);
 
   const defaultStyle = {
     backgroundColor: "transparent",
@@ -252,7 +246,7 @@ const FilterButton = ({
   isSelected: boolean;
   onClick: () => void;
 }) => {
-  const [isHovered, setIsHovered] = useState(false);
+  const [isHovered, setIsHovered] = React.useState(false);
 
   const defaultStyle = {
     backgroundColor: "transparent",
@@ -283,7 +277,6 @@ const FilterButton = ({
   );
 };
 
-// --- ローディング中のスケルトンコンポーネント ---
 const SpotCardSkeleton = () => (
   <div className="flex space-x-4 p-3 border-2 border-gray-200 bg-white shadow-lg rounded-xl mb-3">
     <Skeleton className="h-32 w-1/3 rounded-lg" />
@@ -302,36 +295,30 @@ const SpotCardSkeleton = () => (
   </div>
 );
 
-// --- ページ全体 ---
 const SpotListPage = () => {
-  const router = useRouter();
-  const [stores, setStores] = useState<Store[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [stores, setStores] = React.useState<Store[]>([]);
+  const [isLoading, setIsLoading] = React.useState<boolean>(true);
+  const [activeFilters, setActiveFilters] = React.useState<string[]>([]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
 
       try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_HOST}/api/shops`,
-        );
+        const response = await fetch("../api/shops");
         if (!response.ok) {
           throw new Error(`API responded with status ${response.status}`);
         }
 
-        // APIから受け取ったデータ（お店の配列）をそのまま使う
         const fetchedShops: Shop[] = await response.json();
-
-        // 画面表示用にデータを変換
-        const mappedStores = fetchedShops.map(mapShopToStore);
-
-        // Stateを更新して画面に反映
+        const nahaShops = fetchedShops.filter((shop) =>
+          shop.address.includes("那覇"),
+        );
+        const mappedStores = nahaShops.map(mapShopToStore);
         setStores(mappedStores);
       } catch (error) {
         console.error("データ処理中にエラーが発生しました:", error);
-        setStores([]); // エラーが発生した場合は空にする
+        setStores([]);
       } finally {
         setIsLoading(false);
       }
@@ -341,16 +328,28 @@ const SpotListPage = () => {
   }, []);
 
   const handleSelectStore = (storeId: string) => {
-    // --- ここを修正しました ---
-    router.push(`/event/new?storeId=${storeId}`);
+    window.location.href = `/event/new?storeId=${storeId}`;
   };
 
   const handleFilterToggle = (filterId: string) => {
-    setActiveFilters((prev) =>
-      prev.includes(filterId)
-        ? prev.filter((id) => id !== filterId)
-        : [...prev, filterId],
-    );
+    const exclusiveFilters = ["isHighlyRated", "isInterested"];
+
+    setActiveFilters((prev) => {
+      const isExclusive = exclusiveFilters.includes(filterId);
+      const isCurrentlyActive = prev.includes(filterId);
+
+      if (isExclusive) {
+        const nonExclusive = prev.filter((f) => !exclusiveFilters.includes(f));
+        if (!isCurrentlyActive) {
+          return [...nonExclusive, filterId];
+        }
+        return nonExclusive;
+      } else {
+        return isCurrentlyActive
+          ? prev.filter((id) => id !== filterId)
+          : [...prev, filterId];
+      }
+    });
   };
 
   const handleCountUp = (id: string, type: "like" | "save") => {
@@ -367,24 +366,34 @@ const SpotListPage = () => {
     );
   };
 
-  const filteredStores = stores.filter((store) => {
-    if (activeFilters.length === 0) {
-      return true;
-    }
-    return activeFilters.every((filterId) => {
-      if (filterId === "isHighlyRated") return store.isHighlyRated;
-      if (filterId === "isInterested") return store.isInterested;
-      if (filterId === "isCardOk") return store.isCardOk;
-      if (filterId === "isJapaneseFood") return store.category === "和食";
-      if (filterId === "isForSmallGroup") return store.maxPeople <= 3;
-      return true;
+  const filteredStores = stores
+    .filter((store) => {
+      if (activeFilters.length === 0) {
+        return true;
+      }
+      return activeFilters.every((filterId) => {
+        if (filterId === "isHighlyRated") return true;
+        if (filterId === "isInterested") return true;
+        if (filterId === "isCardOk") return store.isCardOk;
+        if (filterId === "isJapaneseFood") return store.category === "和食";
+        if (filterId === "hasPrivateRoom") return store.hasPrivateRoom;
+        return true;
+      });
+    })
+    .sort((a, b) => {
+      if (activeFilters.includes("isHighlyRated")) {
+        return b.likedCount - a.likedCount;
+      }
+      if (activeFilters.includes("isInterested")) {
+        return b.savedCount - a.savedCount;
+      }
+      return b.likedCount - a.likedCount;
     });
-  });
 
   return (
-    <main className="font-sans bg-orange-50">
-      <div className="w-full max-w-4xl mx-auto px-4 pt-6 pb-4">
-        <div className="sticky top-11 z-3 bg-orange-50/80 pt-6 pb-4 backdrop-blur-sm border-b border-orange-100">
+    <main className="font-sans bg-background">
+      <div className="w-full max-w-2xl mx-auto px-4 pt-6 pb-4">
+        <div className="sticky top-11 z-3 bg-background/80 pt-6 pb-4 backdrop-blur-sm border-b border-orange-100">
           <h1 className="text-2xl font-bold mb-4 text-gray-800">お店を探す</h1>
           <div className="overflow-x-auto pb-2">
             <div className="flex items-center space-x-2 whitespace-nowrap">
