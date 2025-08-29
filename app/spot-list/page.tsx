@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import * as React from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Carousel,
   CarouselContent,
@@ -9,9 +10,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   MapPin,
   Tag,
@@ -120,8 +119,8 @@ const SpotCard = ({
   onSelectStore: (id: string) => void;
 }) => (
   <Card className="border-2 border-orange-200 bg-white shadow-lg rounded-xl overflow-hidden mb-3">
-    <CardContent className="p-3">
-      <div className="flex flex-row space-x-4">
+    <CardContent className="p-5">
+      <div className="flex flex-row space-x-3">
         {/* 画像コンテナ */}
         <div className="w-1/3 flex-shrink-0">
           {store.images && store.images.length > 0 ? (
@@ -139,12 +138,6 @@ const SpotCard = ({
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              {store.images.length > 1 && (
-                <>
-                  <CarouselPrevious className="left-2 hidden sm:flex" />
-                  <CarouselNext className="right-2 hidden sm:flex" />
-                </>
-              )}
             </Carousel>
           ) : (
             <div className="aspect-square bg-gray-200 flex flex-col items-center justify-center rounded-lg text-gray-400">
@@ -156,12 +149,12 @@ const SpotCard = ({
         {/* 店舗情報コンテナ */}
         <div className="w-2/3 flex flex-col">
           <div>
-            <h2 className="text-lg font-bold text-gray-800 mb-0.5">
+            <h2 className="text-lg font-bold text-gray-800 mb-0.5 truncate">
               {store.name}
             </h2>
             <div className="flex items-center text-xs text-gray-600 mb-2">
               <MapPin className="h-4 w-4 mr-1.5 text-orange-500" />
-              <span>{store.location}</span>
+              <span className="truncate">{store.location}</span>
             </div>
             <div className="flex flex-wrap items-center gap-1.5">
               <Tag className="h-5 w-5 mr-1 text-orange-500" />
@@ -187,7 +180,7 @@ const SpotCard = ({
 
             <Button
               size="sm"
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold"
+              className="w-full max-w-full bg-orange-500 hover:bg-orange-600 text-white font-bold"
               onClick={() => onSelectStore(store.id)}
             >
               このお店にする
@@ -214,7 +207,7 @@ const StyledActionButton = ({
   children: React.ReactNode;
   onClick: () => void;
 }) => {
-  const [isHovered, setIsHovered] = useState(false);
+  const [isHovered, setIsHovered] = React.useState(false);
 
   const defaultStyle = {
     backgroundColor: "transparent",
@@ -252,7 +245,7 @@ const FilterButton = ({
   isSelected: boolean;
   onClick: () => void;
 }) => {
-  const [isHovered, setIsHovered] = useState(false);
+  const [isHovered, setIsHovered] = React.useState(false);
 
   const defaultStyle = {
     backgroundColor: "transparent",
@@ -304,34 +297,27 @@ const SpotCardSkeleton = () => (
 
 // --- ページ全体 ---
 const SpotListPage = () => {
-  const router = useRouter();
-  const [stores, setStores] = useState<Store[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [stores, setStores] = React.useState<Store[]>([]);
+  const [isLoading, setIsLoading] = React.useState<boolean>(true);
+  const [activeFilters, setActiveFilters] = React.useState<string[]>([]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
 
       try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_HOST}/api/shops`,
-        );
+        // ★修正点: process.envを使わない相対パスに変更
+        const response = await fetch("../api/shops");
         if (!response.ok) {
           throw new Error(`API responded with status ${response.status}`);
         }
 
-        // APIから受け取ったデータ（お店の配列）をそのまま使う
         const fetchedShops: Shop[] = await response.json();
-
-        // 画面表示用にデータを変換
         const mappedStores = fetchedShops.map(mapShopToStore);
-
-        // Stateを更新して画面に反映
         setStores(mappedStores);
       } catch (error) {
         console.error("データ処理中にエラーが発生しました:", error);
-        setStores([]); // エラーが発生した場合は空にする
+        setStores([]);
       } finally {
         setIsLoading(false);
       }
@@ -341,7 +327,7 @@ const SpotListPage = () => {
   }, []);
 
   const handleSelectStore = (storeId: string) => {
-    router.push(`/event/0?storeId=${storeId}`);
+    window.location.href = `/event/0?storeId=${storeId}`;
   };
 
   const handleFilterToggle = (filterId: string) => {
@@ -381,9 +367,9 @@ const SpotListPage = () => {
   });
 
   return (
-    <main className="font-sans bg-orange-50">
-      <div className="w-full max-w-4xl mx-auto px-4 pt-6 pb-4">
-        <div className="sticky top-11 z-3 bg-orange-50/80 pt-6 pb-4 backdrop-blur-sm border-b border-orange-100">
+    <main className="font-sans bg-background">
+      <div className="w-full max-w-2xl mx-auto px-4 pt-6 pb-4">
+        <div className="sticky top-11 z-3 bg-background/80 pt-6 pb-4 backdrop-blur-sm border-b border-orange-100">
           <h1 className="text-2xl font-bold mb-4 text-gray-800">お店を探す</h1>
           <div className="overflow-x-auto pb-2">
             <div className="flex items-center space-x-2 whitespace-nowrap">
