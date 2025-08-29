@@ -393,7 +393,7 @@ const SpotListPage = () => {
   return (
     <main className="font-sans bg-orange-50 min-h-screen">
       <div className="w-full max-w-2xl mx-auto px-4 pt-6 pb-4">
-        <div className="sticky top-11 z-3 bg-background/80 pt-6 pb-4 backdrop-blur-sm border-b border-orange-100">
+        <div className="sticky top-11 z-3 bg-orange-50/80 pt-6 pb-4 backdrop-blur-sm border-b border-orange-100">
           <h1 className="text-2xl font-bold mb-4 text-gray-800">お店を探す</h1>
           <div className="overflow-x-auto pb-2">
             <div className="flex items-center space-x-2 whitespace-nowrap">
